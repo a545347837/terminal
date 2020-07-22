@@ -7,6 +7,10 @@
 map<string,int>* connect_container = new map<string,int>();
 Db *db = nullptr;
 
+Server::Server() {
+
+}
+
 Server::Server(const char* host,const unsigned int port,const char* username,const char* password,const char* db_name){
     db = new Db(host,port,username,password,db_name);
 }
@@ -83,9 +87,10 @@ void* Server::heartbeat(void* args){
 }
 
 // 创建心跳检测线程
-void Server::create_heartbeat_thread(){
+int Server::create_heartbeat_thread(){
     pthread_t heartbeat_thread;
     pthread_create(&heartbeat_thread, NULL, heartbeat, NULL);
+    return 0;
 }
 
 // 当服务端接收到一个客户端连接，会异步调用该方法进行处理
@@ -102,9 +107,13 @@ void* Server::handle(void* args){
         string *username = nullptr;
         string *password = nullptr;
 
-        split_params(recvbuf,&op,&username,&password);
-
-        const char* valid_result = verification(*op,*username,*password);
+        const char* valid_result = INVALID_PARAM_MSG;
+        int res = split_params(recvbuf,&op,&username,&password);
+        if(res < 0) {
+            send(client,valid_result,SEND_BUFF_SIZE,0);
+            return nullptr;
+        }
+        valid_result = verification(*op,*username,*password);
         if(valid_result != SUCCESS_MSG){
             send(client,valid_result,SEND_BUFF_SIZE,0);
             return nullptr;
@@ -153,26 +162,27 @@ const char* Server::verification(string &op,string &username,string &password){
 }
 
 // 参数分割
-void Server::split_params(char *params,string **op,string **username,string **password){
+int Server::split_params(char *params,string **op,string **username,string **password){
     const char *sep = "&";
 
     char *p = strtok(params,sep);
     if(p == nullptr){
-        return;
+        return -1;
     }
     *op = new string(p);
 
     p = strtok(nullptr,sep);
     if(p == nullptr){
-        return;
+        return -1;
     }
     *username = new string(p);
 
     p = strtok(nullptr,sep);
     if(p == nullptr){
-        return;
+        return -1;
     }
     *password = new string(p);
+    return 0;
 }
 
 

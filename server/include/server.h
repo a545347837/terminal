@@ -28,12 +28,16 @@ using namespace std;
 class Server{
     public:
         Server(const char* host,const unsigned int port,const char* username,const char* password,const char* db_name);
+        Server();
         ~Server();
         void start_accept(const unsigned int listen_port);
-    private:
+
+        // 参数分割
+        static int split_params(char *params,string **op,string **username,string **password);
+    protected:
 
         // 创建心跳检测线程
-        void create_heartbeat_thread();
+        int create_heartbeat_thread();
 
         // 心跳函数，用于对客户端发心跳命令
         static void* heartbeat(void* args);
@@ -44,8 +48,7 @@ class Server{
         // 账号密码校验
         static const char* verification(string &op,string &username,string &password);
 
-        // 参数分割
-        static void split_params(char *params,string **op,string **username,string **password);
+
 
         int sockfd;
 };
