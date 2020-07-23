@@ -1,3 +1,0 @@
-# Hashes of file build rules.
-5ea981f16823b28819818abaf022dfda proto-src/terminal.grpc.pb.cc
-1abcd25bfc72a72729473d7ec6f88fb8 proto-src/terminal.pb.cc

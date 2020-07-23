@@ -1,9 +1,0 @@
-/home/workspace/terminal/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/workspace/terminal/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/workspace/terminal/cmake-build-debug/CMakeFiles/main.dir
-/home/workspace/terminal/cmake-build-debug/CMakeFiles/app_client.dir
-/home/workspace/terminal/cmake-build-debug/CMakeFiles/app_server.dir
-/home/workspace/terminal/cmake-build-debug/tests/googletest/CMakeFiles/edit_cache.dir
-/home/workspace/terminal/cmake-build-debug/tests/googletest/CMakeFiles/gtest_main.dir
-/home/workspace/terminal/cmake-build-debug/tests/googletest/CMakeFiles/rebuild_cache.dir
-/home/workspace/terminal/cmake-build-debug/tests/googletest/CMakeFiles/gtest.dir
