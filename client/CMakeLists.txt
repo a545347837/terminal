@@ -1,2 +1,0 @@
-AUX_SOURCE_DIRECTORY(./src DIR_LIB_SRCS)
-add_library(ClientLib ${DIR_LIB_SRCS})
