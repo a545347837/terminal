@@ -2,6 +2,13 @@
 // Created by caizh on 2020/7/22.
 //
 #include "util.h"
+#include "common/common_util.h"
+
+
+static std::string get_file_contents(const char *fpath)
+{
+
+}
 
 /**
  * 终端RPC服务端
@@ -37,7 +44,7 @@ protected:
 
         if(queryPwd.compare(EMPTY) == 0){
             result.set_message(INVALID_USERNAME_MSG);
-        }else if(!terminalUtil -> checkLogin(request->password(),queryPwd)){
+        }else if(!terminalUtil -> validPassword(request->password(),queryPwd)){
             result.set_message(INVALID_PASSWORD_MSG);
         }
 
@@ -96,7 +103,7 @@ protected:
      * @param password
      */
     void registerUserInfo(string username,string password){
-        string encryptPwd = md5(password);
+        string encryptPwd = terminalUtil->hashPassword(password);
         char sql[256];
         sprintf(sql,INSERT_USER_SQL,username.c_str(),encryptPwd.c_str());
         db->query(sql);
@@ -142,8 +149,22 @@ private:
 int main(int argc, char** argv) {
     std::string server_address("0.0.0.0:50051");
     TerminalServiceImpl service("db",3306,"root","545347837","test");
+    auto clientcert = CommonUtil::getContentFromFile(string("config/server/client_self_signed_crt.pem")); // for verifying clients
+    auto servercert = CommonUtil::getContentFromFile(string("config/server/server_self_signed_crt.pem"));
+    auto serverkey  = CommonUtil::getContentFromFile(string("config/server/server_privatekey.pem"));
+    grpc::SslServerCredentialsOptions::PemKeyCertPair pkcp = {
+            serverkey.c_str(), servercert.c_str()
+    };
+
+    grpc::SslServerCredentialsOptions ssl_opts(GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY);
+    ssl_opts.pem_root_certs = clientcert;
+    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
+
+    std::shared_ptr<grpc::ServerCredentials> creds;
+    creds = grpc::SslServerCredentials(ssl_opts);
+
     ServerBuilder builder;
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.AddListeningPort(server_address,creds);
     builder.RegisterService(&service);
     std::unique_ptr<Server> server(builder.BuildAndStart());
     std::cout << "Server listening on " << server_address << std::endl;

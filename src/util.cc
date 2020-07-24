@@ -67,13 +67,21 @@ bool TerminalUtil::checkParam(const UserRequest *userRequest){
 }
 
 /**
+     * 使用brcypt算法对密码进行哈希
+     * @param password
+     * @return
+     */
+string TerminalUtil::hashPassword(string password){
+    return BCrypt::generateHash(password, 10);
+}
+/**
        * 校验账户密码
        * @param requestPassword 请求的密码
        * @param queryPassword 数据库存放的密码
        * @return
        */
-bool TerminalUtil::checkLogin(string requestPassword,string queryPassword){
-    return queryPassword.compare(md5(requestPassword)) == 0;
+bool TerminalUtil::validPassword(string requestPassword,string queryPassword){
+    return  BCrypt::validatePassword(requestPassword,queryPassword);
 }
 
 

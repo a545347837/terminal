@@ -4,8 +4,9 @@
 #include <iostream>
 #include <memory>
 #include <string>
-
+#include "common/common_util.h"
 #include <grpcpp/grpcpp.h>
+#include <grpc++/security/credentials.h>
 
 #ifdef BAZEL_BUILD
 #include "examples/protos/helloworld.grpc.pb.h"
@@ -132,7 +133,13 @@ private:
 };
 
 int main(int argc, char** argv) {
-    AppClient appClient(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()));
+    grpc::SslCredentialsOptions ssl_opts;
+    ssl_opts.pem_root_certs  = CommonUtil::getContentFromFile(string("config/client/server_self_signed_crt.pem"));
+    ssl_opts.pem_private_key = CommonUtil::getContentFromFile(string("config/client/client_privatekey.pem"));
+    ssl_opts.pem_cert_chain  = CommonUtil::getContentFromFile(string("config/client/client_self_signed_crt.pem"));
+    std::shared_ptr<grpc::ChannelCredentials> creds = grpc::SslCredentials(ssl_opts);
+    AppClient appClient(grpc::CreateChannel(
+            "localhost:50051", creds));
     cout<<"客户端已就绪"<<endl;
     while(1){
         string op = appClient.getOp();

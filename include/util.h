@@ -8,7 +8,6 @@
 
 #include <map>
 #include <string>
-#include "md5.h"
 #include "terminal.grpc.pb.h"
 #include <unistd.h>
 
@@ -18,6 +17,8 @@
 #include "terminal.grpc.pb.h"
 #include "db.h"
 #include <regex>
+#include <grpc++/security/credentials.h>
+#include "third_party/bcrypt/BCrypt.hpp"
 #define EMPTY ""
 #define INVALID_USERNAME_MSG "用户不存在"
 #define EXIST_USERNAME_MSG "用户名已存在"
@@ -80,8 +81,14 @@ public:
         * @param queryPassword 数据库存放的密码
         * @return
         */
-    bool checkLogin(string requestPassword,string queryPassword);
+    bool validPassword(string requestPassword,string queryPassword);
 
+    /**
+     * 使用brcypt算法对密码进行哈希
+     * @param password
+     * @return
+     */
+    string hashPassword(string password);
     /**
      * 检查字符串是否符合正则表达式
      */
