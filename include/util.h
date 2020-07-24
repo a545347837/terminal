@@ -17,13 +17,15 @@
 #include <grpcpp/grpcpp.h>
 #include "terminal.grpc.pb.h"
 #include "db.h"
+#include <regex>
 #define EMPTY ""
 #define INVALID_USERNAME_MSG "用户不存在"
 #define EXIST_USERNAME_MSG "用户名已存在"
 #define INVALID_PASSWORD_MSG "密码错误"
 #define INVALID_PARAM_MSG "用户或密码格式有误"
-#define QUERY_USER_SQL "select * from user_info where username=''"
-#define INSERT_USER_SQL "insert into user_info(username,password) values('','')"
+#define QUERY_USER_SQL "select * from user_info where username='%s'"
+#define INSERT_USER_SQL "insert into user_info(username,password) values('%s','%s')"
+#define USERNAME_REGEX "^[A-Za-z0-9]{1,20}$"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -78,9 +80,12 @@ public:
         * @param queryPassword 数据库存放的密码
         * @return
         */
-    bool checkLogin(string requestPassword,string queryPassword){
-        return queryPassword.compare(md5(requestPassword)) == 0;
-    }
+    bool checkLogin(string requestPassword,string queryPassword);
+
+    /**
+     * 检查字符串是否符合正则表达式
+     */
+    bool isMatch(string str,string regex);
 private:
     /**
         * 抽象客户端连接池

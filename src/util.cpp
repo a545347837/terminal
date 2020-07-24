@@ -62,6 +62,24 @@ bool TerminalUtil::isConnected(string username,int fd){
  */
 bool TerminalUtil::checkParam(const UserRequest *userRequest){
     return userRequest != nullptr &&
-           (userRequest->username().compare(EMPTY) != 0) &&
+           isMatch(userRequest ->username(),string(USERNAME_REGEX)) &&
            (userRequest->password().compare(EMPTY) != 0);
+}
+
+/**
+       * 校验账户密码
+       * @param requestPassword 请求的密码
+       * @param queryPassword 数据库存放的密码
+       * @return
+       */
+bool TerminalUtil::checkLogin(string requestPassword,string queryPassword){
+    return queryPassword.compare(md5(requestPassword)) == 0;
+}
+
+
+/**
+    * 检查字符串是否符合正则表达式
+    */
+bool TerminalUtil::isMatch(string str,string regexStr){
+    return regex_match(str, regex(regexStr));
 }

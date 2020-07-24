@@ -81,9 +81,9 @@ protected:
      * @return
      */
     string queryPassword(string username){
-        string query_sql(QUERY_USER_SQL);
-        query_sql.insert(query_sql.size() - 1,string(username));
-        vector<map<string,string>> result = db->query(query_sql);
+        char sql[256];
+        sprintf(sql,QUERY_USER_SQL,username.c_str());
+        vector<map<string,string>> result = db->query(string(sql));
         if(result.empty()){
             return EMPTY;
         }
@@ -97,10 +97,9 @@ protected:
      */
     void registerUserInfo(string username,string password){
         string encryptPwd = md5(password);
-        string insert_sql(INSERT_USER_SQL);
-        insert_sql.insert(insert_sql.size() - 5,username);
-        insert_sql.insert(insert_sql.size() - 2,encryptPwd);
-        db->query(insert_sql);
+        char sql[256];
+        sprintf(sql,INSERT_USER_SQL,username.c_str(),encryptPwd.c_str());
+        db->query(sql);
     }
 
     /**
