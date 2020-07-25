@@ -7,6 +7,9 @@
 
 #include <string>
 #include <fstream>
+/**
+ * 服务端与客户端均依赖此工具
+ */
 class CommonUtil{
 public:
     /**

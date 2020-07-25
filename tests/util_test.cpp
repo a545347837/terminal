@@ -61,13 +61,13 @@ TEST(TestCase, test_checkParam_fail){
 * 场景：用户密码正确
 */
 TEST(TestCase, test_checkLogin_success){
-    EXPECT_EQ(true,terminalUtil.checkLogin("123","202cb962ac59075b964b07152d234b70"));
+    EXPECT_EQ(true,terminalUtil.validPassword("123",terminalUtil.hashPassword("123")));
 }
 
 /**
 * 场景：用户密码错误
 */
 TEST(TestCase, test_checkLogin_fail){
-    EXPECT_EQ(false,terminalUtil.checkLogin("123","123"));
+    EXPECT_EQ(false,terminalUtil.validPassword("123","123"));
 }
 
