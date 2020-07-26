@@ -21,9 +21,7 @@ UserInfoDao::~UserInfoDao(){
 * @param dbStr
 */
 UserInfoDO UserInfoDao::findByUsername(string username){
-    char sql[256];
-    sprintf(sql,UserInfoDao::QUERY_USER_SQL,username.c_str());
-    vector<map<string,string>> result = db->query(string(sql));
+    vector<map<string,string>> result = db->query(string(QUERY_USER_SQL),1,username.c_str());
     if(result.empty()){
         return nullUserInfoDo;
     }
@@ -39,7 +37,5 @@ UserInfoDO UserInfoDao::findByUsername(string username){
 * @param dbStr
 */
 void UserInfoDao::save(UserInfoDO userInfoDo){
-    char sql[256];
-    sprintf(sql,UserInfoDao::INSERT_USER_SQL,userInfoDo.getUsername().c_str(),userInfoDo.getPassword().c_str());
-    db->query(string(sql));
+    db->query(string(INSERT_USER_SQL),2,userInfoDo.getUsername().c_str(),userInfoDo.getPassword().c_str());
 }

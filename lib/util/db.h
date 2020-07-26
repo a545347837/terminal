@@ -5,8 +5,10 @@
 #include<map>
 #include<string>
 #include<vector>
-
+#include<cstdio>
+#include<cstdarg>
 #include"mysql/mysql.h"
+#include <cstring>
 using namespace std;
 
 /**
@@ -22,7 +24,7 @@ class Db{
 	 ~Db();
 	 
 	 // 通用执行sql方法
-	 vector<map<string,string>> query(string sql,...);
+	 vector<map<string,string>> query(string sql,int count,...);
 	 
   private:
 	 // 数据库实例

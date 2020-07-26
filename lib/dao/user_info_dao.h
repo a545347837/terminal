@@ -31,9 +31,9 @@ public:
 private:
     Db *db;
     // 根据用户名查找用户
-    const char *const QUERY_USER_SQL ="select * from user_info where username='%s'";
+    const char *const QUERY_USER_SQL ="select * from user_info where username=?";
 
     //插入用户信息
-    const char *const INSERT_USER_SQL = "insert into user_info(username,password) values('%s','%s')";
+    const char *const INSERT_USER_SQL = "insert into user_info(username,password) values(?,?)";
 };
 #endif //TERMINAL_USER_INFO_DAO_H

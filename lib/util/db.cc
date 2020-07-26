@@ -1,3 +1,4 @@
+
 #include"db.h"
 
 Db::Db(const char* host,const unsigned int port,const char* username,const char* password,const char* db_name){
@@ -18,56 +19,62 @@ Db::~Db(){
    cout<<"close db success"<<endl;
 }
 
-vector<map<string,string>> Db::query(string sql,...){
+vector<map<string,string>> Db::query(string sql,int count,...){
    cout<<"query db request:"<<sql<<endl;
    vector<map<string,string>> result;
    // 设置编码格式
    mysql_query(&mysql, "set names gbk");
 
-   vercto<string> sqlParams;
+   vector<char*> sqlParams;
    va_list ap;
-   va_start(ap, cnt);
-   for (int i = 0; i < cnt; ++i) {
-       sqlParams.push_back(va_arg(ap, string));
+   va_start(ap, sql);
+   for (int i = 0; i < count; ++i) {
+       sqlParams.push_back(va_arg(ap, char*));
    }
    va_end(ap);
-   MYSQL_STMT *stmt = mysql_stmt_init(conn); //创建MYSQL_STMT句柄
-   if(mysql_stmt_prepare(stmt, sql, strlen(sql))){
+   MYSQL_STMT *stmt = mysql_stmt_init(&mysql); //创建MYSQL_STMT句柄
+
+   if(mysql_stmt_prepare(stmt, sql.c_str(), sql.length())){
        cout<<"mysql_stmt_prepare::"<<mysql_error(&mysql)<<endl;
-        return -1;
+        return result;
 
     }
     MYSQL_BIND params[sqlParams.size()];
     memset(params, 0, sizeof(params));
-    for(int i =0 ;i<sqlParams.size();i++){
+    for(int i =0 ;i < sqlParams.size();i++){
         params[i].buffer_type = MYSQL_TYPE_STRING;
         params[i].buffer = sqlParams[i];
-        params[i].buffer_length = strlen(name);
+        params[i].buffer_length = strlen(sqlParams[i]);
+    }
+
+    res = mysql_stmt_result_metadata(stmt);
+    if(!res){
+        cout<<"get result failed,reason:"<<mysql_error(&mysql)<<endl;
+        return result;
+    }
+    // 3、获取当前查到的字段个数
+    int col_num = mysql_num_fields(res);
+    // 4、将查询结果中的字段名存下来
+    vector<char*> field;
+    int i = 0;
+    MYSQL_BIND resParams[col_num];
+    memset(resParams, 0, sizeof(resParams));
+    for( ; i < col_num ; i ++){
+        field.push_back(mysql_fetch_field(res)->name);
+        resParams[i].buffer_type = MYSQL_TYPE_STRING;
+        resParams[i].buffer = field[i];
+        resParams[i].buffer_length = strlen(field[i]);
     }
     mysql_stmt_bind_param(stmt, params);
+    mysql_stmt_bind_result(stmt,resParams);
     mysql_stmt_execute(stmt);           //执行与语句句柄相关的预处理
-   // 2、将查询的结果存到对象中
-   res = mysql_store_result(&mysql);
-   if(!res){
-     cout<<"get result failed,reason:"<<mysql_error(&mysql)<<endl;
-     return result;
-   }
-   
-   // 3、获取当前查到的字段个数
-   int col_num = mysql_num_fields(res);
-   vector<string> field; 
-
-   // 4、将查询结果中的字段名存下来
-   int i = 0;
-   for( ; i < col_num ; i ++){
-       field.push_back(mysql_fetch_field(res)->name);
-   }
-   
+    mysql_stmt_store_result(stmt);
    // 5、循环将每一行数据以key-value的方式存到map中
-   while (column = mysql_fetch_row(res)){
+   while (!mysql_stmt_fetch(stmt)){
       map<string,string> values;
       for(i = 0 ;i < col_num;i++){
-		values.insert(pair<string, string>(field[i], column[i]));
+		values.insert(pair<string, string>(string(field[i]), res->current_row[i]));
+		cout<<string(field[i])<<":"<<res->current_row[i]<<endl;
       }
       result.push_back(values);
     }
