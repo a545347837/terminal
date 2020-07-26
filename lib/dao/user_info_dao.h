@@ -13,7 +13,7 @@ public:
      * 初始化用户表操作工具
      * @param dbStr
      */
-    UserInfoDao(Db dbStr);
+    UserInfoDao(Db *dbStr);
     ~UserInfoDao();
 
     /**
@@ -31,9 +31,9 @@ public:
 private:
     Db *db;
     // 根据用户名查找用户
-    const string QUERY_USER_SQL "select * from user_info where username='%s'"
+    const char *const QUERY_USER_SQL ="select * from user_info where username='%s'";
 
     //插入用户信息
-    const string INSERT_USER_SQL "insert into user_info(username,password) values('%s','%s')"
+    const char *const INSERT_USER_SQL = "insert into user_info(username,password) values('%s','%s')";
 };
 #endif //TERMINAL_USER_INFO_DAO_H

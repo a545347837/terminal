@@ -22,7 +22,7 @@ class Db{
 	 ~Db();
 	 
 	 // 通用执行sql方法
-	 vector<map<string,string>> query(string sql);
+	 vector<map<string,string>> query(string sql,...);
 	 
   private:
 	 // 数据库实例

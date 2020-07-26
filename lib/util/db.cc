@@ -3,7 +3,7 @@
 Db::Db(const char* host,const unsigned int port,const char* username,const char* password,const char* db_name){
    // 1、初始化句柄
    mysql_init(&mysql);
-   
+
    // 2、创建数据库连接
    if(!mysql_real_connect(&mysql ,host ,username, password, db_name,port,NULL,0)){
       cout<<"Error:"<<mysql_error(&mysql)<<endl;
@@ -18,18 +18,34 @@ Db::~Db(){
    cout<<"close db success"<<endl;
 }
 
-vector<map<string,string>> Db::query(string sql){
-   cout<<"query db request"<<endl;
+vector<map<string,string>> Db::query(string sql,...){
+   cout<<"query db request:"<<sql<<endl;
    vector<map<string,string>> result;
    // 设置编码格式
-   mysql_query(&mysql, "set names gbk"); 
-   
-   // 1、查询
-   if(mysql_query(&mysql,sql.c_str()) != 0){
-     cout<<"query'"<<sql<<"',failed,reason:"<<mysql_error(&mysql)<<endl;
-     return result;
+   mysql_query(&mysql, "set names gbk");
+
+   vercto<string> sqlParams;
+   va_list ap;
+   va_start(ap, cnt);
+   for (int i = 0; i < cnt; ++i) {
+       sqlParams.push_back(va_arg(ap, string));
    }
-   
+   va_end(ap);
+   MYSQL_STMT *stmt = mysql_stmt_init(conn); //创建MYSQL_STMT句柄
+   if(mysql_stmt_prepare(stmt, sql, strlen(sql))){
+       cout<<"mysql_stmt_prepare::"<<mysql_error(&mysql)<<endl;
+        return -1;
+
+    }
+    MYSQL_BIND params[sqlParams.size()];
+    memset(params, 0, sizeof(params));
+    for(int i =0 ;i<sqlParams.size();i++){
+        params[i].buffer_type = MYSQL_TYPE_STRING;
+        params[i].buffer = sqlParams[i];
+        params[i].buffer_length = strlen(name);
+    }
+    mysql_stmt_bind_param(stmt, params);
+    mysql_stmt_execute(stmt);           //执行与语句句柄相关的预处理
    // 2、将查询的结果存到对象中
    res = mysql_store_result(&mysql);
    if(!res){
@@ -58,5 +74,6 @@ vector<map<string,string>> Db::query(string sql){
 	
 	// 6、执行结束后需要清空缓存
     mysql_free_result(res);
+    mysql_stmt_close(stmt);
     return result;
 }

@@ -34,11 +34,6 @@ public:
         UserInfoDO::password = password;
     }
 
-    /**
-     * 空对象
-     */
-    const static UserInfoDO EMPTY_OBJ;
-
 private:
     /**
      * 用户id
