@@ -15,44 +15,93 @@ CREATE TABLE `user_info` (
 ## 修改数据库地址
 打开源码
 `app_server.cpp`修改以下内容
-`TerminalServiceImpl service("db",3306,"root","545347837","test");` 参数依次为数据库地址、数据库端口、登录用户、密码、实例名称
+`Db *db = new Db("db",3306,"root","545347837","test");` 参数依次为数据库地址、数据库端口、登录用户、密码、实例名称
 ## 编译
-回到项目目录，执行以下命令（cmake后面的点不能去掉）
-`cmake . && make`
+回到WORKSPACE项目目录，执行以下命令（cmake后面的点不能去掉）
+`bazel build main:all`
+## 生成通信秘钥
+由于该项目使用了SSL进行通信加密，所以需要生成公私钥，依次执行下述语句生成公私钥
+```
+mkdir -p /home/config/client
+mkdir -p /home/config/server
+cd /home/config
+openssl genrsa -passout pass:123 -des3 -out ca.key 4096
+openssl req -passin pass:123 -new -x509 -days 365 -key ca.key -out ca.crt -subj  "/C=CN/ST=CA/L=Cupertino/O=YourCompany/OU=YourApp/CN=MyRootCA"
+openssl genrsa -passout pass:123 -des3 -out server.key 4096
+openssl req -passin pass:123 -new -key server.key -out server.csr -subj  "/C=CN/ST=CA/L=Cupertino/O=YourCompany/OU=YourApp/CN=localhost"
+openssl x509 -req -passin pass:123 -days 365 -in server.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out server.crt
+openssl rsa -passin pass:123 -in server.key -out server.key
+openssl genrsa -passout pass:123 -des3 -out client.key 4096
+openssl req -passin pass:123 -new -key client.key -out client.csr -subj  "/C=CN/ST=CA/L=Cupertino/O=YourCompany/OU=YourApp/CN=FengJun"
+openssl x509 -passin pass:123 -req -days 365 -in client.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out client.crt
+openssl rsa -passin pass:123 -in client.key -out client.key
+# 客户端读取的密钥
+mv client_privatmv client_privatekey.pem client/
+mv client_self_signed_crt.pem client/ 
+mv server_self_signed_crt.pem client/
+# 服务端读取的密钥
+mv client_self_signed_crt.pem server/
+mv server_privatekey.pem server/
+mv server_self_signed_crt.pem server/
+
+```
+(服务端和客户端默认读取/home/config/下的文件)
 ## 运行
-./app_server 服务端
-./app_client 客户端
-./test 测试用例
+./bazel-bin/main/app_server 服务端
+./bazel-bin/main/app_client 客户端
+
 
 # 项目说明
 ## 目录结构
 ```
-├── app_client.cpp					客户端主程序
-├── app_server.cpp					服务端主程序
-├── cmake							
-│   ├── FindGRPC.cmake				        查找grpc包脚本
-│   └── FindProtobuf.cmake			        查找protobuf包脚本
-├── CMakeLists.txt					cmake打包脚本
-├── include							
-│   ├── db.h						数据库操作类头文件
-│   ├── md5.h						md5工具头文件
-│   └── util.h						常用工具方法头文件
-├── protos
-│   └── terminal.proto				        grpc接口描述文件
-├── README.md
-├── src
-│   ├── db.cpp						数据库操作类
-│   ├── md5.cpp						md5类
-│   └── util.cpp					工具类
-└── tests
-    ├── googletest					gtest源码
-    ├── main.cpp					测试用例运行主类
-    └── util_test.cpp				        工具测试类
+|-- README.md
+|-- WORKSPACE                             工作区，声明项目用到的源码库、本地库等
+|-- lib                                   调用库
+|   |-- dao                               持久化层，对对象进行持久化均在此进行
+|   |   |-- BUILD                         
+|   |   |-- user_info_dao.cc              用户表持久化操作类
+|   |   `-- user_info_dao.h     
+|   |-- domain
+|   |   |-- BUILD
+|   |   `-- user_info.hpp                 用户表映射对象
+|   |-- facade                            外部接口包
+|   |   |-- BUILD
+|   |   `-- terminal.proto                gprc的通信文件
+|   |-- service
+|   |   |-- BUILD
+|   |   |-- connection_pool.cc            虚拟连接池，用来提供抽象管理客户端连接的能力（内部实现实际不涉及真实的连接）
+|   |   |-- connection_pool.h       
+|   |   `-- terminal_service_impl.hpp     grpc服务实现     
+|   |-- thirt_party                       第三方包
+|   |   |-- bcrypt                        bcrypt单向加密库
+|   |   |-- mysql                         mysql相关的库
+|   |       `-- BUILD
+|   `-- util
+|       |-- BUILD
+|       |-- common_util.cc                通用工具类，客户端与服务端均需要引用
+|       |-- common_util.h
+|       |-- db.cc                         底层数据库操作类，用来提供底层的操作物理库能力
+|       |-- db.h
+|       |-- util.cc                       服务端使用的工具类
+|       `-- util.h
+|-- main
+|   |-- BUILD
+|   |-- app_client.cc                     客户端启动入口类
+|   `-- app_server.cc                     服务端启动入口类
+`-- test                                  单测库
+    |-- service
+    |   |-- BUILD.bazel
+    |   `-- connection_pool_test.cc
+    `-- util
+        |-- BUILD.bazel
+        |-- common_util_test.cc
+        `-- util_test.cc
+
 ```
 备注：编译时会自动生成grpc接口对应的服务类和实体等
 ## 交互时序图
 ### 注册
-![](https://i.loli.net/2020/07/23/cNJSVxCj1qLgMdZ.jpg)
+![](https://i.loli.net/2020/07/27/zSfJwQ2Tv3dVOyo.jpg)
 
 ### 登录
-![](https://i.loli.net/2020/07/23/3qBzjnJwtFrscLi.jpg)
+![](https://i.loli.net/2020/07/27/5WS7G8MecJQaUVd.jpg)
