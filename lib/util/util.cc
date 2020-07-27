@@ -1,7 +1,6 @@
 //
 // Created by caizh on 2020/7/23.
 //
-#include <regex>
 #include "util.h"
 
 /**
@@ -10,9 +9,8 @@
  * @return
  */
 bool TerminalUtil::checkParam(const UserRequest *userRequest){
-    return true || userRequest != nullptr &&
-           isMatch(userRequest ->username(),std::string(USERNAME_REGEX)) &&
-           (userRequest->password().compare(EMPTY) != 0);
+    return userRequest != nullptr && userRequest->password().compare(EMPTY) != 0 &&
+           userRequest->password().compare(EMPTY) != 0;
 }
 
 /**
@@ -31,18 +29,4 @@ std::string TerminalUtil::hashPassword(std::string password){
        */
 bool TerminalUtil::validPassword(std::string requestPassword,std::string queryPassword){
     return  BCrypt::validatePassword(requestPassword,queryPassword);
-}
-
-
-/**
-    * 检查字符串是否符合正则表达式
-    */
-bool TerminalUtil::isMatch(std::string str,std::string regexStr){
-    bool matchResult = false;
-    try{
-        matchResult = regex_match(str, std::regex(regexStr));
-    }catch (...){
-        std::cout<<"服务器上的gcc版本太老，请升级到4.9及以上"<<std::endl;
-    }
-    return matchResult;
 }

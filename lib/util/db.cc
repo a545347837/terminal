@@ -37,7 +37,6 @@ vector<map<string,string>> Db::query(string sql,int count,...){
    if(mysql_stmt_prepare(stmt, sql.c_str(), sql.length())){
        cout<<"mysql_stmt_prepare::"<<mysql_error(&mysql)<<endl;
         return result;
-
     }
     MYSQL_BIND params[sqlParams.size()];
     memset(params, 0, sizeof(params));
@@ -59,22 +58,31 @@ vector<map<string,string>> Db::query(string sql,int count,...){
     int i = 0;
     MYSQL_BIND resParams[col_num];
     memset(resParams, 0, sizeof(resParams));
+
+    unsigned long length[col_num];
+    char strData[col_num][128];
+    unsigned long strLength[col_num];
+
+    memset(strData, 0, sizeof(strData));
+    memset(strLength, 0, sizeof(strLength));
+
     for( ; i < col_num ; i ++){
         field.push_back(mysql_fetch_field(res)->name);
+        memset(strData[i], 0, sizeof(strData[i]));
         resParams[i].buffer_type = MYSQL_TYPE_STRING;
-        resParams[i].buffer = field[i];
-        resParams[i].buffer_length = strlen(field[i]);
+        resParams[i].buffer = (char *)strData[i];
+        resParams[i].buffer_length = 128;
+        resParams[i].length = &length[i];
     }
     mysql_stmt_bind_param(stmt, params);
-    mysql_stmt_bind_result(stmt,resParams);
     mysql_stmt_execute(stmt);           //执行与语句句柄相关的预处理
     mysql_stmt_store_result(stmt);
+    mysql_stmt_bind_result(stmt,resParams);
    // 5、循环将每一行数据以key-value的方式存到map中
    while (!mysql_stmt_fetch(stmt)){
       map<string,string> values;
       for(i = 0 ;i < col_num;i++){
-		values.insert(pair<string, string>(string(field[i]), res->current_row[i]));
-		cout<<string(field[i])<<":"<<res->current_row[i]<<endl;
+		values.insert(pair<string, string>(string(field[i]), strData[i]));
       }
       result.push_back(values);
     }

@@ -26,7 +26,6 @@ UserInfoDO UserInfoDao::findByUsername(string username){
         return nullUserInfoDo;
     }
     UserInfoDO userInfoDo;
-
     userInfoDo.setUsername(result.front()["username"]);
     userInfoDo.setPassword(result.front()["password"]);
     return userInfoDo;
