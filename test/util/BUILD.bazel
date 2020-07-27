@@ -1,0 +1,30 @@
+cc_test(
+    name = "common_util_test",
+    srcs = [
+        "common_util_test.cc",
+    ],
+    copts = [
+        "-std=c++11",
+    ],
+    deps = [
+        "//lib/util:common_util",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "util_test",
+    srcs = [
+        "util_test.cc",
+    ],
+    copts = [
+        "-std=c++11",
+    ],
+    deps = [
+        "//lib/util:server_util",
+        "@com_github_grpc_grpc//:grpc++",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)

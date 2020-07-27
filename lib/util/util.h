@@ -14,7 +14,6 @@ using terminal::Result;
 using terminal::TerminalService;
 using terminal::UserRequest;
 using terminal::Result;
-#define USERNAME_REGEX "^[A-Za-z0-9]{1,20}$"
 #define EMPTY ""
 /**
  *

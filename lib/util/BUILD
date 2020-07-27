@@ -1,6 +1,6 @@
 package(
     default_visibility = [
-         "//visibility:public",
+        "//visibility:public",
     ],
 )
 
@@ -15,16 +15,16 @@ cc_library(
     srcs = ["db.cc"],
     hdrs = ["db.h"],
     deps = [
-            "@usr_mysql//:mysql"
-    ]
+        "@usr_mysql//:mysql",
+    ],
 )
 
 cc_library(
-    name = "util",
+    name = "server_util",
     srcs = ["util.cc"],
     hdrs = ["util.h"],
-    deps = ["//lib/facade:terminal_proto",
-            "//lib/thirt_party/bcrypt:bcrypt",
-            ":db_util",
-            ],
+    deps = [
+        "//lib/facade:terminal_proto",
+        "//lib/thirt_party/bcrypt",
+    ],
 )
